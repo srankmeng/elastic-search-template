@@ -107,3 +107,12 @@ GET materials/_search
   }
 }
 ```
+## Import data csv file with [Python]
+Use command inside directory indexer
+```
+cd indexer
+```
+and use command for run script import data with python
+```
+python indexer.py
+```
