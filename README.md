@@ -2,10 +2,10 @@
 
 ## Setup Elasticsearch and Kibana with [Docker compose](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html)
 ```
-$sysctl -w vm.max_map_count=262144
-$docker compose up -d
-$docker compose ps
-$docker compose log --follow
+$ docker compose up -d
+$ docker-compose up --build --force-recreate
+$ docker compose ps
+$ docker compose log --follow
 ```
 
 ## Example of data
@@ -108,11 +108,17 @@ GET materials/_search
 }
 ```
 ## Import data csv file with [Python]
+
+**Note:** Change host url, index name and setting/mapping before run command 
 Use command inside directory indexer
 ```
-cd indexer
+$ cd indexer
 ```
 and use command for run script import data with python
 ```
-python indexer.py
+$ python3 -m venv env/local && source env/local/bin/activate
+$ pip3 install -r requirements.txt
+$ python3 indexer.py
 ```
+
+Waiting a moment for upload data and enjoy :beers: :v:
