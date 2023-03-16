@@ -1,26 +1,30 @@
+import opensearchpy
+from opensearchpy import OpenSearch
+from opensearchpy.helpers import bulk
+from dotenv import load_dotenv
 from retry import retry
 import pandas as pd
-import elasticsearch
-import elasticsearch.helpers
-from elasticsearch import Elasticsearch
-import os
 import json
-from dotenv import load_dotenv
+import os
 
-@retry(elasticsearch.ConnectionError, max_delay=300, delay=5)
+@retry(opensearchpy.ConnectionError, max_delay=300, delay=5)
 def indexer():
     load_dotenv()
 
-    print("============== Connect elastic ==============")
-    ELASTIC_PASSWORD = os.getenv('ELASTIC_PASSWORD')
-    ES_INDEX_NAME = os.getenv('ES_INDEX_NAME')
-    ES_HOST = os.getenv('ES_HOST') or "localhost"
-    ES_PORT = os.getenv('ES_PORT')
+    print("============== Connect opensearch ==============")
+    OPENSEARCH_USERNAME = os.getenv('OPENSEARCH_USERNAME')
+    OPENSEARCH_PASSWORD = os.getenv('OPENSEARCH_PASSWORD')
+    OPENSEARCH_INDEX_NAME = os.getenv('OPENSEARCH_INDEX_NAME')
+    OPENSEARCH_HOST = os.getenv('OPENSEARCH_HOST') or "localhost"
+    OPENSEARCH_PORT = os.getenv('OPENSEARCH_PORT')
 
-    es_client = Elasticsearch(
-        "http://{}:{}".format(ES_HOST, ES_PORT),
-        basic_auth=("elastic", ELASTIC_PASSWORD),
-        verify_certs=False,
+    os_client = OpenSearch(
+        hosts = [{'host': OPENSEARCH_HOST, 'port': OPENSEARCH_PORT}],
+        http_auth = (OPENSEARCH_USERNAME, OPENSEARCH_PASSWORD),
+        use_ssl = True,
+        verify_certs = False,
+        ssl_assert_hostname = False,
+        ssl_show_warn = False,
     )
 
     print("=============== Read csv file ===============")
@@ -29,9 +33,9 @@ def indexer():
     json_str = df.to_json(orient='records')
     json_records = json.loads(json_str)
 
-    index_name = ES_INDEX_NAME
+    index_name = OPENSEARCH_INDEX_NAME
     number_of_shards = 1
-    es_params = {
+    os_params = {
         "index": index_name,
         "body": {
             "settings": {"index": {
@@ -96,7 +100,7 @@ def indexer():
                     },
                     "effective_date": {
                         "type": "date",
-                        "format": ["dd-MMM-yy h.mm.ss a"]
+                        "format": ["dd-MMM-yy"]
                     },
                     "originator": {
                         "analyzer": "trigrams",
@@ -112,9 +116,9 @@ def indexer():
             },
         },
     }
-    if es_client.indices.exists(index=index_name):
-        es_client.indices.delete(index=index_name)
-    es_client.indices.create(**es_params)
+    if os_client.indices.exists(index=index_name):
+        os_client.indices.delete(index=index_name)
+    os_client.indices.create(**os_params)
     action_list = []
     
     for row in json_records:
@@ -126,7 +130,7 @@ def indexer():
         action_list.append(record)
 
     print("============= Start import data =============")
-    elasticsearch.helpers.bulk(es_client, action_list)
+    bulk(os_client, action_list)
 
     print("=========== Import data successful ==========")
 
