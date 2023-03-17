@@ -36,89 +36,87 @@ def indexer():
     index_name = OPENSEARCH_INDEX_NAME
     number_of_shards = 1
     os_params = {
-        "index": index_name,
-        "body": {
-            "settings": {"index": {
-                "number_of_shards": number_of_shards,
-                "max_ngram_diff": 100,
-                "analysis": {
-                    "analyzer": {
-                        "trigrams": {
-                        "type": "custom",
-                        "tokenizer": "trigram_tokenizer",
-                        "filter": [
-                            "lowercase"
-                        ]
+
+        "settings": {"index": {
+            "number_of_shards": number_of_shards,
+            "max_ngram_diff": 100,
+            "analysis": {
+                "analyzer": {
+                    "trigrams": {
+                    "type": "custom",
+                    "tokenizer": "trigram_tokenizer",
+                    "filter": [
+                        "lowercase"
+                    ]
+                    }
+                },
+                "tokenizer": {
+                    "trigram_tokenizer": {
+                    "type": "ngram",
+                    "min_gram": 3,
+                    "max_gram": 100,
+                    "token_chars": []
+                    }
+                }
+            }
+        }},
+        "mappings": {
+            "properties": {
+                "spec_no": {
+                    "type": "keyword"
+                },
+                "spec_issue_no": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
                         }
-                    },
-                    "tokenizer": {
-                        "trigram_tokenizer": {
-                        "type": "ngram",
-                        "min_gram": 3,
-                        "max_gram": 100,
-                        "token_chars": []
+                    }
+                },
+                "spec_name": {
+                    "analyzer": "trigrams",
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "spec_shortname": {
+                    "analyzer": "trigrams",
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
+                },
+                "status": {
+                    "type": "keyword"
+                },
+                "cross_reference": {
+                    "type": "keyword"
+                },
+                "effective_date": {
+                    "type": "date",
+                    "format": ["dd-MMM-yy"]
+                },
+                "originator": {
+                    "analyzer": "trigrams",
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
                         }
                     }
                 }
-            }},
-            "mappings": {
-                "properties": {
-                    "spec_no": {
-                        "type": "keyword"
-                    },
-                    "spec_issue_no": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "spec_name": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "spec_shortname": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "status": {
-                        "type": "keyword"
-                    },
-                    "cross_reference": {
-                        "type": "keyword"
-                    },
-                    "effective_date": {
-                        "type": "date",
-                        "format": ["dd-MMM-yy"]
-                    },
-                    "originator": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    }
-                }
-                
-            },
-        },
+            }
+            
+        }
     }
     if os_client.indices.exists(index=index_name):
         os_client.indices.delete(index=index_name)
-    os_client.indices.create(**os_params)
+    os_client.indices.create(index_name, body=os_params)
     action_list = []
     
     for row in json_records:
