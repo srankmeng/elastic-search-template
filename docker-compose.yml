@@ -80,19 +80,19 @@ services:
       - elasticsearch
     restart: unless-stopped
 
-  indexer:
-    build:
-      context: indexer/
-    environment:
-      ES_INDEX_NAME: ${ES_INDEX_NAME:-}
-      ES_PORT: ${ES_PORT:-}
-      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
-    depends_on:
-      - elasticsearch
-    links:
-      - elasticsearch
-    networks:
-      - elk
+  # indexer:
+  #   build:
+  #     context: indexer/
+  #   environment:
+  #     ES_INDEX_NAME: ${ES_INDEX_NAME:-}
+  #     ES_PORT: ${ES_PORT:-}
+  #     ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
+  #   depends_on:
+  #     - elasticsearch
+  #   links:
+  #     - elasticsearch
+  #   networks:
+  #     - elk
 
 networks:
   elk:

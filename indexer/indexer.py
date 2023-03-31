@@ -31,83 +31,14 @@ def indexer():
 
     index_name = ES_INDEX_NAME
     number_of_shards = 1
+
     es_params = {
         "index": index_name,
         "body": {
             "settings": {"index": {
                 "number_of_shards": number_of_shards,
-                "max_ngram_diff": 100,
-                "analysis": {
-                    "analyzer": {
-                        "trigrams": {
-                        "type": "custom",
-                        "tokenizer": "trigram_tokenizer",
-                        "filter": [
-                            "lowercase"
-                        ]
-                        }
-                    },
-                    "tokenizer": {
-                        "trigram_tokenizer": {
-                        "type": "ngram",
-                        "min_gram": 3,
-                        "max_gram": 100,
-                        "token_chars": []
-                        }
-                    }
-                }
             }},
             "mappings": {
-                "properties": {
-                    "spec_no": {
-                        "type": "keyword"
-                    },
-                    "spec_issue_no": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "spec_name": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "spec_shortname": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    },
-                    "status": {
-                        "type": "keyword"
-                    },
-                    "cross_reference": {
-                        "type": "keyword"
-                    },
-                    "effective_date": {
-                        "type": "date",
-                        "format": ["dd-MMM-yy h.mm.ss a"]
-                    },
-                    "originator": {
-                        "analyzer": "trigrams",
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword"
-                            }
-                        }
-                    }
-                }
                 
             },
         },
