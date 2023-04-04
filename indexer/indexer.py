@@ -15,7 +15,7 @@ def indexer():
     ELASTIC_PASSWORD = os.getenv('ELASTIC_PASSWORD')
     ES_INDEX_NAME = os.getenv('ES_INDEX_NAME')
     ES_HOST = os.getenv('ES_HOST') or "localhost"
-    ES_PORT = os.getenv('ES_PORT')
+    ES_PORT = 9200
 
     es_client = Elasticsearch(
         "http://{}:{}".format(ES_HOST, ES_PORT),
