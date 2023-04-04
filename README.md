@@ -1,4 +1,4 @@
-# POC search material
+# Elastic Search Template
 
 ## Setup Elasticsearch and Kibana with [Docker compose](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html)
 
