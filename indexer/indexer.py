@@ -30,24 +30,17 @@ def indexer():
     json_records = json.loads(json_str)
 
     index_name = ES_INDEX_NAME
-    number_of_shards = 1
 
-    es_params = {
-        "index": index_name,
-        "body": {
-            "settings": {"index": {
-                "number_of_shards": number_of_shards,
-            }},
-            "mappings": {
-                
-            },
-        },
+    settings = {
+        "number_of_shards": 1,
     }
+    mappings = {}
+
     if es_client.indices.exists(index=index_name):
         es_client.indices.delete(index=index_name)
-    es_client.indices.create(**es_params)
-    action_list = []
+    es_client.indices.create(index=index_name, settings=settings, mappings=mappings)
     
+    action_list = []
     for row in json_records:
         record ={
             '_op_type': 'index',
