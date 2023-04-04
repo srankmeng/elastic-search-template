@@ -28,9 +28,7 @@ $ docker compose up --build --force-recreate
 
 You can change CORS domain in `docker-compose.yml` at elasticsearch service.
 
-## Import data from csv file with [Docker compose]
-
-**Note:** Change host url, index name and setting/mapping before run command
+## Config location path file and settings, mappings for import data to elastic
 
 Change index name in `.env` file in valiable ES_INDEX_NAME
 ```
@@ -39,16 +37,20 @@ ES_INDEX_NAME=<index name>
 Config file path for import initial data
 - /elastic-search-tempate/indexer/data
 
-You can change file name or path but you must chang both in file indexer.py too
+You can change file name or path but you must chang both in file `indexer.py` too
 ```
 csv_file_path = os.path.join(<Folder name>, <File name>)
 ```
 
-You can change settings and mappings config in file indexer.py in valiable settings
+You can change settings and mappings config in file `indexer.py` in valiable settings
 ```
 settings = {<Settings config>}
 mappings = {<Mappings config>}
 ```
+
+## Import data from csv file with [Docker compose]
+
+**Note:** Change host url, index name and setting/mapping before run command
 
 Go to `docker-compose.yml` and make sure to use indexer service
 
