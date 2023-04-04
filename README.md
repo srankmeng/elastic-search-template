@@ -1,86 +1,314 @@
 # POC search material
 
 ## Setup Elasticsearch and Kibana with [Docker compose](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html)
+
+#### Start services
 ```
-$ docker compose up -d
-$ docker-compose up --build --force-recreate
-$ docker compose ps
-$ docker compose log --follow
+$ docker compose up
 ```
 
-## Example of data
+#### Start services with any changes
+```
+$ docker compose up --build --force-recreate
+```
+**Note:** In `docker-compose.yml` the services are include elasticsearch, kibana and indexer. If you want to auto import initial data when run `docker compose up`, you can uncomment service indexer.
+
+## Login Kibana
+- Go to `http://localhost:5601`
+- username: `elastic`
+- password: `xitgmLwmp`
+
+**Note:** You can change password in `.env` file
+
+## Call Elastic search api
+- Host: `http://localhost:9200`
+- Basic auth [username: `elastic`] [password: `xitgmLwmp`]
+
+**Note:** You can change password in `.env` file
+
+You can change CORS domain in `docker-compose.yml` at elasticsearch service.
+
+## Import data from csv file with [Docker compose]
+
+**Note:** Change host url, index name and setting/mapping before run command
+
+Go to `docker-compose.yml` and make sure to use indexer service
+
+Run this command
+```
+$ docker compose up indexer
+```
+
+## Import data from csv file with [Python3]
+
+**Note:** Change host url, index name and setting/mapping before run command
+
+Change directory to indexer
+```
+$ cd indexer
+```
+Use these commands for run script import data with python
+```
+$ python3 -m venv env/local && source env/local/bin/activate
+$ pip3 install -r requirements.txt
+$ python3 indexer.py
+```
+
+## Insert / Update data
+
+#### Insert
+```
+POST <index_name>/_doc
+{
+  "<field_name_1>": "<value1>",
+  "<field_name_2>": "<value2>",
+  "<field_name_3>": "<value3>"
+}
+```
+
+#### Insert (example)
 ```
 POST materials/_doc
 {
 	"material_id": 1,
-	"spec_no": "M1111A222",
+	"spec_no": "MAT00001",
 	"spec_name": "material one",
 	"spec_shortname": "material one",
 	"created_date": "2023/02/28",
-	"status": "Yes",
-	"cross_reference": ["x111", "y222"]
+	"status": "yes"
 }
 ```
 
-## Create a custom tokenizer and analyzer
+#### Update
 ```
-PUT materials
+PUT <index_name>/_doc/<id> 
 {
-  "settings": {
-    "index": {
-      "number_of_shards": 4,
-      "number_of_replicas": 1,
-      "max_ngram_diff": "5",
-      "analysis": {
-        "analyzer": {
-          "trigrams": {
-            "tokenizer": "trigram_tokenizer",
-            "filter": [
-              "lowercase"
-            ]
-          }
-        },
-        "tokenizer": {
-          "trigram_tokenizer": {
-            "type": "ngram",
-            "min_gram": 2,
-            "max_gram": 5,
-            "token_chars": []
-          }
-        }
-      }
-    }
+  "<field_name_1>": "<value1>",
+  "<field_name_2>": "<value2>",
+  "<field_name_3>": "<value3>"
+}
+```
+
+## Index mapping
+
+#### Update mapping
+```
+PUT <index_name>/_mapping
+{
+  "properties": {
+    "<field_name>": {
+      "type": “<field_type>"
+    },
+    ...
   }
 }
 ```
 
-Check setting and mapping
-```
-GET materials/_settings
-
-GET materials/_mapping
-```
-
-Testing with ngram
-```
-GET materials/_analyze
-{
-  "text": "my data 123",
-  "analyzer": "trigrams"
-}
-```
-
-## Custom mapping for materials
+#### Update mapping (example)
 ```
 PUT materials/_mapping
 {
   "properties": {
-    "spec_no": {
-      "analyzer": "trigrams",
-      "type": "text",
-      "fields": {
-        "raw": {
-          "type": "keyword"
+    "status": {
+      "type": "keyword"
+    }
+  }
+}
+```
+
+#### Get mapping
+```
+GET <index_name>/_mapping 
+```
+
+## Query data
+
+#### [Match](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html)
+```
+POST <index_name>/_search
+{
+  "query": {
+    "match": {
+      "<field_name>": "<value>"
+    }
+  }
+} 
+```
+
+#### [Term](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html)
+```
+POST <index_name>/_search
+{
+  "query": {
+    "term": {
+      "<field_name>": "<value>"
+    }
+  }
+} 
+```
+
+#### [Should](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html)
+```
+POST <index_name>/_search
+{
+  "query":{
+	"bool":{
+	  "should":[
+		{
+		  "match":{
+			"<field_name_1>":"<value1>"
+		  }
+		},
+        {
+          "match":{
+        	"<field_name_2>":"<value2>"
+          }
+		}
+	  ],
+	  "minimum_should_match":1
+	}
+  }
+}
+```
+
+#### [Must](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html)
+```
+POST <index_name>/_search
+{
+  "query":{
+	"bool":{
+	  "must":[
+		{
+		  "match":{
+			"<field_name_1>":"<value1>"
+		  }
+		},
+        {
+          "match":{
+        	"<field_name_2>":"<value2>"
+          }
+		}
+	  ]
+	}
+  }
+}
+```
+
+#### [Filter](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html)
+```
+POST <index_name>/_search
+{
+  "query":{
+	"bool":{
+	  "filter":[
+		{
+		  "term":{
+			"<field_name_1>":"<value1>"
+		  }
+		},
+        {
+          "range":{
+        	"<field_name_2>": {
+			  "gte": "<start_date>",
+			  "lte": "<end_date>", 
+            }
+          }
+		}
+	  ]
+	}
+  }
+}
+```
+
+#### [Limit](https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html)
+```
+POST <index_name>/_search
+{
+  "from": 0,
+  "size": 10,
+  "query": {
+  	...
+  }
+} 
+```
+
+#### Count
+```
+GET <index_name>/_count
+```
+
+## [Wildcard](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html)
+```
+POST <index_name>/_search
+{
+  "query": {
+    "wildcard": {
+      "<field_name>": "<partial_text>*"
+    }
+  }
+} 
+```
+
+#### Example
+```
+POST <index_name>/_search
+{
+  "query": {
+    "wildcard": {
+	  "spec_name": "mat*"
+    }
+  }
+} 
+```
+
+## [Analyzer](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-analyzers.html)
+
+#### Check value when use analyze 
+```
+POST <index_name>/_analyze
+{
+  "text": "<value>",
+  "analyzer": "standard"
+} 
+```
+
+#### Define analyze with field  
+```
+PUT <index_name>/_mapping
+{
+  "properties": {
+	"<field_name>": {
+	  "type": "text",
+	  "analyzer": "standard"
+	}
+  }
+} 
+```
+
+## Create a custom tokenizer and analyzer ([ngram](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-ngram-tokenizer.html))
+```
+PUT <index_name>
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "max_ngram_diff": "10",
+    "analysis": {
+      "analyzer": {
+        "trigrams": {
+          "type": "custom", 
+          "tokenizer": "trigram_tokenizer",
+          "filter": [
+            "lowercase"
+          ]
+        }
+      },
+      "tokenizer": {
+        "trigram_tokenizer": {
+          "type": "ngram",
+          "min_gram": 3,
+          "max_gram": 10,
+          "token_chars": []
         }
       }
     }
@@ -88,9 +316,10 @@ PUT materials/_mapping
 }
 ```
 
-## Search data with [Ngram](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-ngram-tokenizer.html)
+
+#### Search data with ngram (example)
 ```
-GET materials/_search
+POST materials/_search
 {
   "query": {
     "bool": {
@@ -98,7 +327,7 @@ GET materials/_search
         {
           "term": {
             "spec_no": {
-              "value": "m1"
+              "value": "mat"
             }
           }
         }
@@ -107,18 +336,40 @@ GET materials/_search
   }
 }
 ```
-## Import data csv file with [Python]
 
-**Note:** Change host url, index name and setting/mapping before run command 
-Use command inside directory indexer
+## [Aliases](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-aliases.html)
+
+#### Create alias
 ```
-$ cd indexer
-```
-and use command for run script import data with python
-```
-$ python3 -m venv env/local && source env/local/bin/activate
-$ pip3 install -r requirements.txt
-$ python3 indexer.py
+POST _aliases 
+{
+  "actions":[
+    {
+      "add": {
+        "index": <index_name>,
+        "alias": <alias_name>
+      }
+    }
+  ]
+} 
 ```
 
-Waiting a moment for upload data and enjoy :beers: :v:
+#### Switch alias & remove unused alias
+```
+POST _aliases 
+{
+  "actions":[
+    {
+      "add": {
+        "index": <index_dest>,
+        "alias": <alias_name>
+      }
+    },
+    {
+      "remove_index": {
+        "index": "<index_source>"
+      }
+    }
+  ]
+} 
+```
