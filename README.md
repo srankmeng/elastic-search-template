@@ -30,19 +30,19 @@ You can change CORS domain in `docker-compose.yml` at elasticsearch service.
 
 ## Config location path file and settings, mappings for import data to elastic
 
-Change index name in `.env` file in valiable ES_INDEX_NAME
+Change index name in `.env` file in variable `ES_INDEX_NAME`
 ```
 ES_INDEX_NAME=<index name>
 ```
 Config file path for import initial data
 - /elastic-search-tempate/indexer/data
 
-You can change file name or path but you must chang both in file `indexer.py` too
+You can change file name or path in file `indexer.py`
 ```
 csv_file_path = os.path.join(<Folder name>, <File name>)
 ```
 
-You can change settings and mappings config in file `indexer.py` in valiable settings
+You can change settings and mappings config in file `indexer.py` in variable settings
 ```
 settings = {<Settings config>}
 mappings = {<Mappings config>}
